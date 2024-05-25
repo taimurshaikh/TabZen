@@ -1,0 +1,23 @@
+{
+    "manifest_version": 3,
+    "version": "1.0.0",
+    "name": "TabZen",
+    "action": {
+        "default_popup": "popup.html"
+    },
+    "permissions": [
+        "tabs",
+        "tabGroups",
+        "storage"
+      ],
+    "background": {
+        "service_worker": "js/background.js",
+        "type": "module"
+    },
+    "content_scripts": [
+        {
+            "matches": ["http://*/*", "https://*/*"],
+            "js": ["js/content_script.js"]
+        }
+    ]
+}
