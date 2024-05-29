@@ -3,6 +3,9 @@ from sentence_transformers import SentenceTransformer
 from typing import List
 import numpy as np
 from threading import Lock
+import os
+
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 
 class EmbeddingModel:

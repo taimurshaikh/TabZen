@@ -1,14 +1,28 @@
 # backend/app/main.py
-from fastapi import FastAPI, Depends
 from typing import List
+from fastapi import Depends, FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.schemas import TabData, GroupResponse
 from app.utils import cluster_tabs
 from app.models import EmbeddingModel
 
 app = FastAPI()
 
+# Allow CORS for all origins with all available methods and headers
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-# Dependency injection for the singleton EmbeddingModel
+
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}
+
+
+# Define a dependency for the EmbeddingModel
 def get_embedding_model() -> EmbeddingModel:
     return EmbeddingModel()
 
@@ -17,7 +31,7 @@ def get_embedding_model() -> EmbeddingModel:
 async def group_tabs(
     tabs: List[TabData], model: EmbeddingModel = Depends(get_embedding_model)
 ) -> GroupResponse:
-    tab_texts = [tab.title + " " + tab.url for tab in tabs]
+    tab_texts = [f"{tab.title}\n{tab.url}" for tab in tabs]
     embeddings = model.get_embeddings(tab_texts)
     labels = cluster_tabs(embeddings)
     return GroupResponse(groups=labels.tolist())

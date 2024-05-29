@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import axios from "axios";
 
 const App: React.FC = () => {
   const [groupedTabs, setGroupedTabs] = useState<{ [key: string]: string[] }>(
@@ -8,23 +7,24 @@ const App: React.FC = () => {
 
   const handleGroupTabs = async () => {
     try {
-      const tabs = await chrome.tabs.query({});
-      const tabData = tabs.map((tab) => ({ url: tab.url, title: tab.title }));
+      // Retrieve pre-calculated groups from Chrome storage
+      chrome.storage.local.get("groupedTabs", (result) => {
+        const groups = result.groupedTabs;
 
-      const response = await axios.post(
-        "http://localhost:8000/group-tabs",
-        tabData
-      );
-      const { groups } = response.data;
+        if (groups) {
+          // Group tabs according to the pre-calculated groups
+          chrome.tabs.query({}, (tabs) => {
+            const grouped = tabs.reduce((acc, tab, index) => {
+              const group = groups[index];
+              if (!acc[group]) acc[group] = [];
+              if (tab.title) acc[group].push(tab.title);
+              return acc;
+            }, {} as { [key: string]: string[] });
 
-      const grouped = tabs.reduce((acc, tab, index) => {
-        const group = groups[index];
-        if (!acc[group]) acc[group] = [];
-        acc[group].push(tab.title ?? "");
-        return acc;
-      }, {} as { [key: string]: string[] });
-
-      setGroupedTabs(grouped);
+            setGroupedTabs(grouped);
+          });
+        }
+      });
     } catch (error) {
       console.error("Error grouping tabs:", error);
     }
@@ -32,7 +32,7 @@ const App: React.FC = () => {
 
   return (
     <div>
-      <h1>TabZen</h1>
+      <h1>Tab Grouper</h1>
       <button onClick={handleGroupTabs}>Group Tabs</button>
       {Object.keys(groupedTabs).length > 0 && (
         <div>
