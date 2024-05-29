@@ -1,9 +1,17 @@
+let isProcessing = false;
+
 // Function to fetch tab data and calculate groups
 async function fetchAndGroupTabs() {
+  if (isProcessing) {
+    return;
+  }
+  isProcessing = true;
+
   try {
     let tabs = await chrome.tabs.query({});
     let tabData = tabs.map((tab) => ({
-      url: tab.url ?? "",
+      host: new URL(tab.url ?? "").host,
+      url: new URL(tab.url ?? "").origin,
       title: tab.title,
     }));
 
@@ -24,6 +32,8 @@ async function fetchAndGroupTabs() {
     });
   } catch (error) {
     console.error("Error fetching and grouping tabs:", error);
+  } finally {
+    isProcessing = false;
   }
 }
 
@@ -41,5 +51,10 @@ chrome.tabs.onCreated.addListener((tab) => {
 
 // Initial grouping on extension installation
 chrome.runtime.onInstalled.addListener(() => {
+  fetchAndGroupTabs();
+});
+
+// Listener for tab removal
+chrome.tabs.onRemoved.addListener((tabId, removeInfo) => {
   fetchAndGroupTabs();
 });

@@ -4,6 +4,7 @@ from typing import List
 
 
 class TabData(BaseModel):
+    host: str
     url: str
     title: str
 
