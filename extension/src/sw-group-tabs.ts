@@ -10,9 +10,8 @@ async function fetchAndGroupTabs() {
   try {
     let tabs = await chrome.tabs.query({});
     let tabData = tabs.map((tab) => ({
-      host: new URL(tab.url ?? "").host,
-      url: new URL(tab.url ?? "").origin,
-      title: tab.title,
+      url: tab.url ?? "",
+      title: tab.title ?? "",
     }));
 
     // Send tab data to the backend to calculate groups

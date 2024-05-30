@@ -31,7 +31,7 @@ def get_embedding_model() -> EmbeddingModel:
 async def group_tabs(
     tabs: List[TabData], model: EmbeddingModel = Depends(get_embedding_model)
 ) -> GroupResponse:
-    tab_texts = [f"{tab.title} {tab.host} {tab.url}" for tab in tabs]
+    tab_texts = [f"{tab.title} {tab.url}" for tab in tabs]
     embeddings = model.get_embeddings(tab_texts)
     labels = cluster_tabs(embeddings)
     return GroupResponse(groups=labels.tolist())
