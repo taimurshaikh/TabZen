@@ -7,23 +7,32 @@ const App: React.FC = () => {
 
   const handleGroupTabs = async () => {
     try {
-      // Retrieve pre-calculated groups from Chrome storage
-      chrome.storage.local.get("groupedTabs", (result) => {
-        const groups = result.groupedTabs;
+      // Send message to the background script to group tabs
+      chrome.runtime.sendMessage({ action: "groupTabs" }, (response) => {
+        console.log("Group tabs message sent, response:", response);
 
-        if (groups) {
-          // Group tabs according to the pre-calculated groups
-          chrome.tabs.query({}, (tabs) => {
-            const grouped = tabs.reduce((acc, tab, index) => {
-              const group = groups[index];
-              if (!acc[group]) acc[group] = [];
-              if (tab.title) acc[group].push(tab.title);
-              return acc;
-            }, {} as { [key: string]: string[] });
+        // Retrieve pre-calculated groups from Chrome storage
+        chrome.storage.local.get("groupedTabs", (result) => {
+          const groups: { [key: number]: string } = result.groupedTabs;
 
-            setGroupedTabs(grouped);
-          });
-        }
+          if (groups) {
+            // Group tabs according to the pre-calculated groups
+            chrome.tabs.query({}, (tabs) => {
+              const grouped = tabs.reduce((acc, tab) => {
+                if (tab.id !== undefined) {
+                  const group = groups[tab.id];
+                  if (group !== undefined) {
+                    if (!acc[group]) acc[group] = [];
+                    if (tab.title) acc[group].push(tab.title);
+                  }
+                }
+                return acc;
+              }, {} as { [key: string]: string[] });
+
+              setGroupedTabs(grouped);
+            });
+          }
+        });
       });
     } catch (error) {
       console.error("Error grouping tabs:", error);

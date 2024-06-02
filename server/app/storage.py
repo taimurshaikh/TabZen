@@ -30,8 +30,8 @@ class EmbeddingStorage:
     def get_all_embeddings(self) -> List[np.ndarray]:
         return list(self.embeddings.values())
 
-    def get_all_tab_data(self) -> List[dict]:
-        return list(self.tab_data.values())
+    def get_all_tab_data(self) -> Dict[int, dict]:
+        return self.tab_data
 
 
 embedding_storage = EmbeddingStorage()
