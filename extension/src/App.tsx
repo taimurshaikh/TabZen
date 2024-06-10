@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import "./tailwind.css";
 
 const App: React.FC = () => {
   const [groupedTabs, setGroupedTabs] = useState<{ [key: string]: string[] }>(
@@ -40,18 +41,25 @@ const App: React.FC = () => {
   };
 
   return (
-    <div>
-      <h1>Tab Grouper</h1>
-      <button onClick={handleGroupTabs}>Group Tabs</button>
+    <div className="bg-gray-100 items-center p-4">
+      <h1 className="text-2xl font-bold mb-4">Tab Grouper</h1>
+      <button
+        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-200"
+        onClick={handleGroupTabs}
+      >
+        Group Tabs
+      </button>
       {Object.keys(groupedTabs).length > 0 && (
-        <div>
-          <h2>Grouped Tabs</h2>
+        <div className="mt-6 w-full">
+          <h2 className="text-xl font-semibold mb-4">Grouped Tabs</h2>
           {Object.entries(groupedTabs).map(([group, titles], index) => (
-            <div key={index}>
-              <h3>Group {group}</h3>
-              <ul>
+            <div key={index} className="mb-4 p-4 bg-white rounded shadow">
+              <h3 className="text-lg font-medium">Group {group}</h3>
+              <ul className="list-disc list-inside">
                 {titles.map((title, idx) => (
-                  <li key={idx}>{title}</li>
+                  <li key={idx} className="ml-4">
+                    {title}
+                  </li>
                 ))}
               </ul>
             </div>

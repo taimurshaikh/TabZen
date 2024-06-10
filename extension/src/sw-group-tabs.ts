@@ -50,7 +50,7 @@ async function fetchAndUpdateTabs(tabId?: number): Promise<void> {
 
     // Store the group information using Chrome storage
     chrome.storage.local.set({ groupedTabs: result.groups }, () => {
-      console.log("Tab groups pre-calculated and stored.");
+      console.log("Groups:", result.groups);
     });
   } catch (error) {
     console.error("Error fetching and updating tabs:", error);
@@ -64,7 +64,7 @@ async function groupTabsInBrowser(): Promise<void> {
   try {
     const result = await chrome.storage.local.get("groupedTabs");
     const groupedTabs: { [key: number]: TabData[] } = result.groupedTabs;
-    if (!groupedTabs) return;
+    if (!result.groupedTabs) return;
 
     for (const [groupId, tabDataList] of Object.entries(groupedTabs)) {
       const tabIds = tabDataList.map((tabData) => tabData.tab_id);
