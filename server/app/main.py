@@ -1,4 +1,5 @@
-from typing import List
+# backend/app/main.py
+from typing import List, Dict
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from app.schemas import TabData, TabRemoveData, GroupResponse
@@ -43,11 +44,29 @@ def get_embedding_model() -> EmbeddingModel:
     return ModelSingleton.get_model()
 
 
+def group_tabs(
+    tab_data: Dict[int, dict], labels: np.ndarray
+) -> Dict[int, List[TabData]]:
+    # Organize tabs into groups based on clustering labels
+    grouped_tabs: Dict[int, List[TabData]] = {}
+    for tab_id, label in zip(tab_data.keys(), labels):
+        if label not in grouped_tabs:
+            grouped_tabs[label] = []
+        tab_info = tab_data[tab_id]
+        grouped_tabs[label].append(
+            TabData(tab_id=tab_id, title=tab_info["title"], url=tab_info["url"])
+        )
+
+    logger.info(f"Grouped tabs: {grouped_tabs}")
+
+    return grouped_tabs
+
+
 @app.post("/update-tabs", response_model=GroupResponse)
 async def update_tabs(
-    tabs: List[TabData], model: EmbeddingModel = Depends(get_embedding_model)
+    tabs: List[TabData] = [], model: EmbeddingModel = Depends(get_embedding_model)
 ) -> GroupResponse:
-    logger.info(f"Received tabs for update: {tabs}")
+    # logger.info(f"Received tabs for update: {tabs}")
     try:
         for tab in tabs:
             tab_text = f"{tab.title} {tab.url}"
@@ -57,8 +76,10 @@ async def update_tabs(
             )
 
         all_embeddings = embedding_storage.get_all_embeddings()
+        tab_data = embedding_storage.get_all_tab_data()
         labels = cluster_tabs(np.array(all_embeddings))
-        return GroupResponse(groups=labels.tolist())
+        grouped_tabs = group_tabs(tab_data, labels)
+        return GroupResponse(groups=grouped_tabs)
     except Exception as e:
         logger.error(f"Error in update_tabs: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")
@@ -66,15 +87,20 @@ async def update_tabs(
 
 @app.post("/delete-tab", response_model=GroupResponse)
 async def delete_tab(tab: TabRemoveData) -> GroupResponse:
-    logger.info(f"Received tab for deletion: {tab}")
+    # logger.info(f"Received tab for deletion: {tab}")
     try:
         embedding_storage.remove_tab(tab.tab_id)
         all_embeddings = embedding_storage.get_all_embeddings()
         if not all_embeddings:
-            return GroupResponse(groups=[])
+            return GroupResponse(groups={})
+
+        tab_data = embedding_storage.get_all_tab_data()
 
         labels = cluster_tabs(np.array(all_embeddings))
-        return GroupResponse(groups=labels.tolist())
+
+        grouped_tabs = group_tabs(tab_data, labels)
+
+        return GroupResponse(groups=grouped_tabs)
     except Exception as e:
         logger.error(f"Error in delete_tab: {e}")
         raise HTTPException(status_code=500, detail="Internal Server Error")

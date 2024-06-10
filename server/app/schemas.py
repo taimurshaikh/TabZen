@@ -1,6 +1,6 @@
 # backend/app/schemas.py
-from typing import List
 from pydantic import BaseModel
+from typing import List, Dict
 
 
 class TabData(BaseModel):
@@ -14,4 +14,4 @@ class TabRemoveData(BaseModel):
 
 
 class GroupResponse(BaseModel):
-    groups: List[int]
+    groups: Dict[int, List[TabData]]
