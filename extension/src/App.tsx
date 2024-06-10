@@ -41,13 +41,16 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="bg-gray-100 items-center p-4">
-      <h1 className="text-2xl font-bold mb-4">Tab Grouper</h1>
+    <div className="bg-gray-100 items-center p-4 w-[400px]">
+      <h1 className="text-2xl font-bold mb-4 whitespace-nowrap overflow-hidden overflow-ellipsis">
+        TabZen<span>🧘🏽</span>
+      </h1>
+
       <button
-        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 transition duration-200"
+        className="relative px-4 py-2 rounded overflow-hidden border border-blue-400 bg-white text-blue-400 shadow-2xl transition-all before:absolute before:left-0 before:top-0 before:h-full before:w-0 before:duration-500 after:absolute after:right-0 after:top-0 after:h-full after:w-0 after:duration-500 hover:text-white hover:shadow-blue-400 hover:before:w-2/4 hover:before:bg-gradient-to-r from-blue-500 to-blue-700 hover:after:w-2/4 hover:after:bg-blue-700"
         onClick={handleGroupTabs}
       >
-        Group Tabs
+        <span className="relative z-10">Group</span>
       </button>
       {Object.keys(groupedTabs).length > 0 && (
         <div className="mt-6 w-full">
@@ -57,7 +60,10 @@ const App: React.FC = () => {
               <h3 className="text-lg font-medium">Group {group}</h3>
               <ul className="list-disc list-inside">
                 {titles.map((title, idx) => (
-                  <li key={idx} className="ml-4">
+                  <li
+                    key={idx}
+                    className="ml-4 whitespace-nowrap overflow-hidden overflow-ellipsis"
+                  >
                     {title}
                   </li>
                 ))}
