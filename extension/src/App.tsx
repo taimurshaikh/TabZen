@@ -41,9 +41,9 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="bg-gray-100 items-center p-4 w-[400px]">
+    <div className="bg-gray-100 items-center p-4 w-[200px]">
       <h1 className="text-2xl font-bold mb-4 whitespace-nowrap overflow-hidden overflow-ellipsis">
-        TabZen<span>🧘🏽</span>
+        TabZen <span>🧘🏽</span>
       </h1>
 
       <button
@@ -52,26 +52,6 @@ const App: React.FC = () => {
       >
         <span className="relative z-10">Group</span>
       </button>
-      {Object.keys(groupedTabs).length > 0 && (
-        <div className="mt-6 w-full">
-          <h2 className="text-xl font-semibold mb-4">Grouped Tabs</h2>
-          {Object.entries(groupedTabs).map(([group, titles], index) => (
-            <div key={index} className="mb-4 p-4 bg-white rounded shadow">
-              <h3 className="text-lg font-medium">Group {group}</h3>
-              <ul className="list-disc list-inside">
-                {titles.map((title, idx) => (
-                  <li
-                    key={idx}
-                    className="ml-4 whitespace-nowrap overflow-hidden overflow-ellipsis"
-                  >
-                    {title}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 };
