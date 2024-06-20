@@ -1,4 +1,3 @@
-# backend/app/main.py
 from typing import List, Dict
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -26,28 +25,55 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
+    """
+    Root endpoint that returns a simple greeting message.
+
+    Returns:
+        dict: A dictionary with a greeting message.
+    """
     return {"message": "Hello World"}
 
 
-# Singleton EmbeddingModel
+# Singleton pattern for the EmbeddingModel
 class ModelSingleton:
     _model = None
 
     @staticmethod
-    def get_model():
+    def get_model() -> EmbeddingModel:
+        """
+        Retrieve the singleton instance of EmbeddingModel.
+
+        Returns:
+            EmbeddingModel: The singleton instance of EmbeddingModel.
+        """
         if ModelSingleton._model is None:
             ModelSingleton._model = EmbeddingModel()
         return ModelSingleton._model
 
 
 def get_embedding_model() -> EmbeddingModel:
+    """
+    Dependency injection for retrieving the singleton EmbeddingModel.
+
+    Returns:
+        EmbeddingModel: The singleton instance of EmbeddingModel.
+    """
     return ModelSingleton.get_model()
 
 
 def group_tabs(
     tab_data: Dict[int, dict], labels: np.ndarray
 ) -> Dict[int, List[TabData]]:
-    # Organize tabs into groups based on clustering labels
+    """
+    Group tabs based on their cluster labels.
+
+    Args:
+        tab_data (Dict[int, dict]): A dictionary where keys are tab IDs and values are tab information.
+        labels (np.ndarray): An array of cluster labels for each tab.
+
+    Returns:
+        Dict[int, List[TabData]]: A dictionary where keys are cluster labels and values are lists of TabData.
+    """
     grouped_tabs: Dict[int, List[TabData]] = {}
     for tab_id, label in zip(tab_data.keys(), labels):
         if label not in grouped_tabs:
@@ -66,7 +92,19 @@ def group_tabs(
 async def update_tabs(
     tabs: List[TabData] = [], model: EmbeddingModel = Depends(get_embedding_model)
 ) -> GroupResponse:
-    # logger.info(f"Received tabs for update: {tabs}")
+    """
+    Endpoint to update tabs with their embeddings and group them.
+
+    Args:
+        tabs (List[TabData]): A list of TabData to be updated.
+        model (EmbeddingModel): The embedding model (injected dependency).
+
+    Returns:
+        GroupResponse: A response containing the grouped tabs.
+
+    Raises:
+        HTTPException: If an error occurs during the update process.
+    """
     try:
         for tab in tabs:
             tab_text = f"{tab.title} {tab.url}"
@@ -87,7 +125,18 @@ async def update_tabs(
 
 @app.post("/delete-tab", response_model=GroupResponse)
 async def delete_tab(tab: TabRemoveData) -> GroupResponse:
-    # logger.info(f"Received tab for deletion: {tab}")
+    """
+    Endpoint to delete a tab and update the grouping of remaining tabs.
+
+    Args:
+        tab (TabRemoveData): The TabRemoveData instance containing the ID of the tab to be removed.
+
+    Returns:
+        GroupResponse: A response containing the grouped tabs.
+
+    Raises:
+        HTTPException: If an error occurs during the deletion process.
+    """
     try:
         embedding_storage.remove_tab(tab.tab_id)
         all_embeddings = embedding_storage.get_all_embeddings()
@@ -95,9 +144,7 @@ async def delete_tab(tab: TabRemoveData) -> GroupResponse:
             return GroupResponse(groups={})
 
         tab_data = embedding_storage.get_all_tab_data()
-
         labels = cluster_tabs(np.array(all_embeddings))
-
         grouped_tabs = group_tabs(tab_data, labels)
 
         return GroupResponse(groups=grouped_tabs)
