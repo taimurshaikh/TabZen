@@ -45,9 +45,12 @@ const App: React.FC = () => {
       <h1 className="text-2xl font-bold mb-4 whitespace-nowrap overflow-hidden overflow-ellipsis">
         TabZen <span>🧘🏽</span>
       </h1>
-
+      <p className="text-gray-500 text-sm mb-4">
+        The world's <span className="font-bold">smartest</span> tab manager.
+        Group your workspace with just one click.
+      </p>
       <button
-        className="relative px-4 py-2 rounded overflow-hidden border border-blue-400 bg-white text-blue-400 shadow-2xl transition-all before:absolute before:left-0 before:top-0 before:h-full before:w-0 before:duration-500 after:absolute after:right-0 after:top-0 after:h-full after:w-0 after:duration-500 hover:text-white hover:shadow-blue-400 hover:before:w-2/4 hover:before:bg-gradient-to-r from-blue-500 to-blue-700 hover:after:w-2/4 hover:after:bg-blue-700"
+        className="relative px-8 py-2 rounded overflow-hidden border border-purple-400 bg-white text-purple-400 shadow-2xl transition-all before:absolute before:left-0 before:top-0 before:h-full before:w-0 before:duration-500 after:absolute after:right-0 after:top-0 after:h-full after:w-0 after:duration-500 hover:text-white hover:shadow-purple-400 hover:before:w-2/4 hover:before:bg-gradient-to-r from-purple-500 to-purple-700 hover:after:w-2/4 hover:after:bg-purple-700"
         onClick={handleGroupTabs}
       >
         <span className="relative z-10">Group</span>
