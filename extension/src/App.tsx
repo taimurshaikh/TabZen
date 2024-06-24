@@ -35,6 +35,19 @@ const App: React.FC = () => {
           }
         });
       });
+
+      // Label groups in the browser
+      chrome.runtime.sendMessage({ action: "labelGroups" }, (response) => {
+        setTimeout(() => {
+          console.log("Label groups message sent, response:", response);
+        }, 2000);
+        console.log("THE RESPONSE IS", response.result);
+        for (const [groupNum, label] of Object.entries(response.result)) {
+          chrome.tabGroups.update(parseInt(groupNum), {
+            title: label as string,
+          });
+        }
+      });
     } catch (error) {
       console.error("Error grouping tabs:", error);
     }

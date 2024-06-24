@@ -51,9 +51,7 @@ async function fetchAndUpdateTabs(tabId?: number): Promise<void> {
     const result = await response.json();
 
     // Store the group information using Chrome storage
-    chrome.storage.local.set({ groupedTabs: result.groups }, () => {
-      console.log("Groups:", result.groups);
-    });
+    chrome.storage.local.set({ groupedTabs: result.groups });
   } catch (error) {
     console.error("Error fetching and updating tabs:", error);
   } finally {
