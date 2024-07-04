@@ -1,8 +1,4 @@
-interface TabData {
-  tab_id: number;
-  url: string;
-  title: string;
-}
+import { TabData } from "./types";
 
 let isProcessing = false;
 
@@ -48,12 +44,11 @@ async function fetchAndUpdateTabs(tabId?: number): Promise<void> {
       body: JSON.stringify(tabDataList),
     });
 
-    const result = await response.json();
+    const resultingGroups: Map<number, TabData[]> = (await response.json())
+      .groups;
 
     // Store the group information using Chrome storage
-    chrome.storage.local.set({ groupedTabs: result.groups }, () => {
-      console.log("Groups:", result.groups);
-    });
+    chrome.storage.local.set({ groupedTabs: resultingGroups });
   } catch (error) {
     console.error("Error fetching and updating tabs:", error);
   } finally {

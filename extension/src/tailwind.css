@@ -13,3 +13,30 @@ body {
   filter: drop-shadow(0 0 10px rgba(78, 26, 112, 0.8));
 }
 
+/* Add these styles to handle text overflow and make the container scrollable */
+
+/* Ensure all text fits within the container */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Handle word breaks */
+.break-words {
+  word-wrap: break-word;
+}
+
+/* Make the container scrollable if content overflows */
+.overflow-auto {
+  overflow: auto;
+}
+
+/* Ensure responsive width and height */
+.w-full {
+  width: 100%;
+}
+
+.h-full {
+  height: 100%;
+}
