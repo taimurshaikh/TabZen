@@ -5,3 +5,11 @@
 body {
   font-family: 'Figtree', sans-serif;
 }
+
+.glow-effect {
+  box-shadow: 0 0 20px 5px rgba(78, 26, 112, 0.8);
+}
+.logo-bg-glow {
+  filter: drop-shadow(0 0 10px rgba(78, 26, 112, 0.8));
+}
+
