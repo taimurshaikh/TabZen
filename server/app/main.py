@@ -88,6 +88,24 @@ def group_tabs(
     return grouped_tabs
 
 
+@app.post("/label-groups", response_model=Dict[int, str])
+def label_groups(groupIdToTabData: Dict[int, List[TabData]]) -> Dict[int, str]:
+    """
+    Assign a string label to each group.
+
+    Args:
+        grouped_tabs (Dict[int, List[TabData]]): A dictionary where keys are cluster labels and values are lists of TabData.
+
+    Returns:
+        Dict[int, int]: A dictionary where keys are cluster labels and values are group labels.
+    """
+    group_labels = {}
+    for i, label in enumerate(groupIdToTabData.keys()):
+        group_labels[label] = str(i)
+
+    return group_labels
+
+
 @app.post("/update-tabs", response_model=GroupResponse)
 async def update_tabs(
     tabs: List[TabData] = [], model: EmbeddingModel = Depends(get_embedding_model)

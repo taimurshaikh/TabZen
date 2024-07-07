@@ -1,41 +1,65 @@
 import React, { useState, useEffect } from "react";
 import "./tailwind.css";
-import { TabData } from "./types";
+import { TabData, OrdinalGroupedTabs } from "./types";
 
 const App: React.FC = () => {
-  const [groupedTabs, setGroupedTabs] = useState<Map<number, TabData[]>>(
-    new Map<number, TabData[]>()
-  );
+  const [ordinalGroupedTabs, setOrdinalGroupedTabs] =
+    useState<OrdinalGroupedTabs>({});
 
   const handleGroupTabs = async () => {
     try {
       // Send message to the background script to group tabs
       await new Promise<void>((resolve, reject) => {
-        chrome.runtime.sendMessage({ action: "groupTabs" }, (response) => {
-          resolve();
+        chrome.runtime.sendMessage(
+          { action: "groupTabsInBrowser" },
+          (response) => {
+            resolve();
+          }
+        );
+      });
+
+      // Retrieve pre-calculated groups from Chrome storage for display
+      // NOTE: These groups are updated on every new tab or tab close
+      const chromeStorageOrdinalGroupedTabsResult = await new Promise<{
+        [key: string]: any;
+      }>((resolve, reject) => {
+        chrome.storage.local.get("ordinalGroupedTabs", (result) => {
+          if (chrome.runtime.lastError) {
+            reject(chrome.runtime.lastError);
+          } else {
+            resolve(result);
+          }
         });
       });
 
-      // Retrieve pre-calculated groups from Chrome storage
-      const result = await new Promise<{ [key: string]: any }>(
-        (resolve, reject) => {
-          chrome.storage.local.get("groupedTabs", (result) => {
-            if (chrome.runtime.lastError) {
-              reject(chrome.runtime.lastError);
-            } else {
-              resolve(result);
-            }
-          });
-        }
-      );
-
-      const groups = result.groupedTabs as { [key: number]: TabData[] };
+      const groups =
+        chromeStorageOrdinalGroupedTabsResult.ordinalGroupedTabs as OrdinalGroupedTabs;
 
       if (groups) {
         console.log("Grouped tabs from storage:", groups); // Log the grouped tabs
-        setGroupedTabs(
-          new Map(Object.entries(groups).map(([k, v]) => [parseInt(k, 10), v]))
+        setOrdinalGroupedTabs(groups);
+
+        // Now we call the backend to label the groups in the browser
+        await new Promise<void>((resolve, reject) => {
+          chrome.runtime.sendMessage({ action: "labelGroups" }, (response) => {
+            resolve();
+          });
+        });
+
+        // get grouplabels from chrome storage
+        const groupLabels = await new Promise<{ [key: string]: any }>(
+          (resolve, reject) => {
+            chrome.storage.local.get("groupLabels", (result) => {
+              if (chrome.runtime.lastError) {
+                reject(chrome.runtime.lastError);
+              } else {
+                resolve(result);
+              }
+            });
+          }
         );
+
+        console.log("Group labels from storage:", groupLabels); // Log the group labels
       }
     } catch (error) {
       console.error("Error grouping tabs:", error);
@@ -43,8 +67,8 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log("Grouped tabs state updated:", groupedTabs); // Log the grouped tabs when state updates
-  }, [groupedTabs]);
+    console.log("Grouped tabs state updated:", ordinalGroupedTabs); // Log the grouped tabs when state updates
+  }, [ordinalGroupedTabs]);
 
   return (
     <div className="bg-gray-100 p-4 w-[300px] h-[500px] flex flex-col">
@@ -67,9 +91,9 @@ const App: React.FC = () => {
           </div>
         </button>
       </div>
-      {groupedTabs.size > 0 ? (
+      {Object.keys(ordinalGroupedTabs).length > 0 ? (
         <div className="flex-grow overflow-y-auto bg-white rounded-lg shadow-md">
-          {Array.from(groupedTabs).map(([groupNum, tabDataList]) => (
+          {Object.entries(ordinalGroupedTabs).map(([groupNum, tabDataList]) => (
             <div
               key={groupNum}
               className="p-4 border-b border-gray-200 last:border-b-0"
@@ -78,7 +102,7 @@ const App: React.FC = () => {
                 Group {groupNum}
               </h2>
               <div className="space-y-2">
-                {tabDataList.map((tabData) => (
+                {tabDataList.map((tabData: TabData) => (
                   <div
                     key={tabData.tab_id}
                     className="bg-gray-50 rounded-md p-2 shadow-sm hover:shadow-md transition-shadow duration-200"

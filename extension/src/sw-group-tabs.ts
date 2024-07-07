@@ -1,22 +1,22 @@
-import { TabData } from "./types";
+import { TabData, OrdinalGroupedTabs } from "./types";
 
 let isProcessing = false;
 
 /**
- * Fetches tab data and updates tab groups on the server.
- * If a tabId is provided, only data for that tab is fetched and sent.
+ * Calls the server to pre-calculate tab groups based on the current tabs in the browser.s
+ * If a tabId is provided, only data for that tab is fetched and sent to the server.
  * Otherwise, data for all tabs is fetched and sent.
  *
  * @param {number} [tabId] - Optional ID of a specific tab to update.
+ * Sets a chrome storage key "groupedTabs" with the resulting groups in ordinal format.
  */
-async function fetchAndUpdateTabs(tabId?: number): Promise<void> {
+async function preCalculateTabGroups(tabId?: number): Promise<void> {
   if (isProcessing) {
     return;
   }
   isProcessing = true;
 
   try {
-    let response: Response;
     let tabDataList: TabData[];
     if (tabId) {
       const tab = await chrome.tabs.get(tabId);
@@ -36,7 +36,7 @@ async function fetchAndUpdateTabs(tabId?: number): Promise<void> {
       }));
     }
 
-    response = await fetch("http://localhost:80/update-tabs", {
+    let response: Response = await fetch("http://localhost:80/update-tabs", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -44,11 +44,11 @@ async function fetchAndUpdateTabs(tabId?: number): Promise<void> {
       body: JSON.stringify(tabDataList),
     });
 
-    const resultingGroups: Map<number, TabData[]> = (await response.json())
+    const resultingOrdinalGroups: OrdinalGroupedTabs = (await response.json())
       .groups;
 
     // Store the group information using Chrome storage
-    chrome.storage.local.set({ groupedTabs: resultingGroups });
+    chrome.storage.local.set({ ordinalGroupedTabs: resultingOrdinalGroups });
   } catch (error) {
     console.error("Error fetching and updating tabs:", error);
   } finally {
@@ -57,7 +57,7 @@ async function fetchAndUpdateTabs(tabId?: number): Promise<void> {
 }
 
 /**
- * Groups tabs in the browser based on stored group information.
+ * Actually groups tabs in the browser based on stored pre-calculated ordinal groups
  */
 async function groupTabsInBrowser(): Promise<void> {
   try {
@@ -76,7 +76,7 @@ async function groupTabsInBrowser(): Promise<void> {
 
 // Listener for messages from the frontend to trigger tab grouping
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.action === "groupTabs") {
+  if (message.action === "groupTabsInBrowser") {
     groupTabsInBrowser();
   }
   sendResponse({ status: "received" });
@@ -84,23 +84,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 // Listener for newly created tabs
 chrome.tabs.onCreated.addListener((tab) => {
-  fetchAndUpdateTabs(tab.id);
+  preCalculateTabGroups(tab.id);
 });
 
 // Listener for tab replacements
 chrome.tabs.onReplaced.addListener((addedTabId, removedTabId) => {
-  fetchAndUpdateTabs(addedTabId);
+  preCalculateTabGroups(addedTabId);
 });
 
 // Initial tab grouping on extension installation
 chrome.runtime.onInstalled.addListener(() => {
-  fetchAndUpdateTabs();
+  preCalculateTabGroups();
 });
 
 // Listener for tab updates (e.g., URL changes)
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.url) {
-    fetchAndUpdateTabs(tabId);
+    preCalculateTabGroups(tabId);
   }
 });
 
@@ -116,7 +116,7 @@ chrome.tabs.onRemoved.addListener(async (tabId, removeInfo) => {
     });
 
     // Fetch the latest groups after removal
-    await fetchAndUpdateTabs();
+    await preCalculateTabGroups();
   } catch (error) {
     console.error("Error updating groups after tab removal:", error);
   }
