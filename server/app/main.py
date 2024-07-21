@@ -7,6 +7,14 @@ from app.models import EmbeddingModel
 from app.storage import embedding_storage
 import numpy as np
 import logging
+from openai import OpenAI
+import json
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -88,8 +96,36 @@ def group_tabs(
     return grouped_tabs
 
 
+def get_chat_completion(user_message: str) -> str:
+    client = OpenAI()
+    completion = client.chat.completions.create(
+        model="gpt-4o-mini",
+        response_format={"type": "json_object"},
+        messages=[
+            {
+                "role": "system",
+                "content": "You are an intelligent labelling system that excels at taking in information and generating concise, meaningful labels for them.",
+            },
+            {
+                "role": "user",
+                "content": f"""I will give you a list of information about tabs a user has open. 
+             Please generate a short label (no more than 3 words) for this group of tabs. Output your answer as a JSON object
+             with a single key "label" and the value as the label you generated.
+             Here is the list of tabs:\n{user_message}""",
+            },
+        ],
+    )
+    try:
+        res = completion.choices[0].message.content
+        resJSON = json.loads(res)
+        return resJSON["label"]
+    except Exception as e:
+        logger.error(f"Error in get_chat_completion: {e}")
+        return None
+
+
 @app.post("/label-groups", response_model=Dict[int, str])
-def label_groups(groupIdToTabData: Dict[int, List[TabData]]) -> Dict[int, str]:
+async def label_groups(groupIdToTabData: Dict[int, List[TabData]]) -> Dict[int, str]:
     """
     Assign a string label to each group.
 
@@ -101,7 +137,7 @@ def label_groups(groupIdToTabData: Dict[int, List[TabData]]) -> Dict[int, str]:
     """
     group_labels = {}
     for i, label in enumerate(groupIdToTabData.keys()):
-        group_labels[label] = str(i)
+        group_labels[label] = get_chat_completion(groupIdToTabData[label])
 
     return group_labels
 

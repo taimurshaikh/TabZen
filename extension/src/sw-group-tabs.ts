@@ -61,9 +61,9 @@ async function preCalculateTabGroups(tabId?: number): Promise<void> {
  */
 async function groupTabsInBrowser(): Promise<void> {
   try {
-    const result = await chrome.storage.local.get("groupedTabs");
-    const groupedTabs: { [key: number]: TabData[] } = result.groupedTabs;
-    if (!result.groupedTabs) return;
+    const result = await chrome.storage.local.get("ordinalGroupedTabs");
+    if (!result.ordinalGroupedTabs) return;
+    const groupedTabs: { [key: number]: TabData[] } = result.ordinalGroupedTabs;
 
     for (const [groupNum, tabDataList] of Object.entries(groupedTabs)) {
       const tabIds = tabDataList.map((tabData) => tabData.tab_id);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import "./tailwind.css";
-import { TabData, OrdinalGroupedTabs } from "./types";
+import "../tailwind.css";
+import { TabData, OrdinalGroupedTabs } from "../types";
 
 const App: React.FC = () => {
   const [ordinalGroupedTabs, setOrdinalGroupedTabs] =
@@ -71,18 +71,22 @@ const App: React.FC = () => {
   }, [ordinalGroupedTabs]);
 
   return (
-    <div className="bg-gray-100 p-4 w-[300px] h-[500px] flex flex-col">
-      <header className="flex flex-col items-start mb-2">
-        <img src="vector/default.svg" alt="Logo" className="-m-6" />
+    <div className="bg-slate-50 p-4 w-80 h-min flex flex-col">
+      <header className="flex flex-col items-start">
+        <img
+          src="vector/default-monochrome.svg"
+          className="scale-50"
+          alt="Logo"
+        />
       </header>
       <p className="text-gray-600 mb-2 text-sm">
-        TabZen is the world's smartest tab manager. Group your workspace with
-        just <span className="font-bold text-slate-950">one click</span>.
+        The world's smartest tab manager. Group your workspace with just{" "}
+        <span className="font-bold text-slate-950">one click</span>.
       </p>
       <div className="flex-shrink-0 mb-2">
         <button
-          className="w-full px-8 py-2 rounded overflow-hidden border border-[#4E1A70] bg-white text-[#4E1A70] shadow-2xl
-          relative transition-all duration-500 ease-in-out hover:text-white group"
+          className="w-full px-8 py-2 rounded overflow-hidden border border-[#4E1A70] bg-slate-50 text-[#4E1A70] shadow-2xl
+          relative transition-all duration-500 ease-in-out hover:text-slate-50 group"
           onClick={handleGroupTabs}
         >
           <span className="relative z-10 text-base">Group</span>
@@ -92,7 +96,7 @@ const App: React.FC = () => {
         </button>
       </div>
       {Object.keys(ordinalGroupedTabs).length > 0 ? (
-        <div className="flex-grow overflow-y-auto bg-white rounded-lg shadow-md">
+        <div className="flex-grow overflow-y-auto rounded-lg shadow-md">
           {Object.entries(ordinalGroupedTabs).map(([groupNum, tabDataList]) => (
             <div
               key={groupNum}
