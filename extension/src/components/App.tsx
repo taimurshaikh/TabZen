@@ -8,6 +8,11 @@ const App: React.FC = () => {
 
   const handleGroupTabs = async () => {
     try {
+      if (window.confirm("Are you sure you want to group all tabs?")) {
+        console.log("Grouping tabs...");
+      } else {
+        return;
+      }
       // Send message to the background script to group tabs
       await new Promise<void>((resolve, reject) => {
         chrome.runtime.sendMessage(
@@ -80,7 +85,7 @@ const App: React.FC = () => {
         />
       </header>
       <p className="text-gray-600 mb-2 text-sm">
-        The world's smartest tab manager. Group your workspace with just{" "}
+        A smart <span>🧠</span> tab manager. Group your workspace with just{" "}
         <span className="font-bold text-slate-950">one click</span>.
       </p>
       <div className="flex-shrink-0 mb-2">
